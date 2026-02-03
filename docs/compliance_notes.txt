@@ -1,0 +1,1 @@
+This is placeholder for docs/compliance_notes.txt
