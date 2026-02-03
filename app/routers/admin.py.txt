@@ -1,0 +1,25 @@
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+router = APIRouter()
+
+ADMIN_USERS = [{"email": "admin@example.com", "password": "admin123"}]
+
+class Login(BaseModel):
+    email: str
+    password: str
+
+@router.post("/login")
+def admin_login(login: Login):
+    for user in ADMIN_USERS:
+        if user["email"] == login.email and user["password"] == login.password:
+            return {"success": True}
+    return {"success": False, "message": "Invalid credentials"}
+
+@router.get("/analytics")
+def analytics():
+    return {
+        "total_users": 100,
+        "total_revenue": 5000,
+        "country_breakdown": {"IN": 50, "BD": 30, "GLOBAL": 20}
+    }

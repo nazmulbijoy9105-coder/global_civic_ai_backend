@@ -1,0 +1,1 @@
+This is placeholder for admin/dashboard_templates.txt

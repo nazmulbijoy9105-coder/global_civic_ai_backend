@@ -1,0 +1,1 @@
+This is placeholder for docs/deployment_aws_gcp.txt
