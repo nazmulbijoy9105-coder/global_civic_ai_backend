@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Global Civic AI – Dev Tour</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f7f7f7; color:#333; padding:20px; }
+  h1 { color:#0b4f6c; }
+  h2 { color:#0b6f42; }
+  li { margin:8px 0; }
+  a { color:#0b4f6c; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .step { background:#fff; padding:15px; margin:15px 0; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+  .done { color:green; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<h1>🟢 Global Civic AI – Dev Guided Tour</h1>
+
+<div class="step">
+  <h2>Step 1: Start Dev Environment</h2>
+  <ul>
+    <li>Double-click <code>run-full-allinone.bat</code></li>
+    <li>Check backend terminal → Uvicorn logs</li>
+    <li>Check frontend terminal → Next.js logs</li>
+    <li>Browser opens at <a href="http://127.0.0.1:3000" target="_blank">http://127.0.0.1:3000</a></li>
+    <li>Welcome page should say: <em>“Welcome to Global Civic AI — Tour platform for civic”</em></li>
+  </ul>
+</div>
+
+<div class="step">
+  <h2>Step 2: Test Authentication</h2>
+  <ul>
+    <li>Visit <a href="http://127.0.0.1:3000/signup" target="_blank">/signup</a> → create a test user</li>
+    <li>Visit <a href="http://127.0.0.1:3000/login" target="_blank">/login</a> → log in with test user</li>
+    <li>Visit <a href="http://127.0.0.1:3000/dashboard" target="_blank">/dashboard</a> → confirm data loads from backend (/me)</li>
+    <li>Logout → confirm redirect to login</li>
+  </ul>
+</div>
+
+<div class="step">
+  <h2>Step 3: Check Cookies & Tokens</h2>
+  <ul>
+    <li>Open DevTools → Application → Cookies</li>
+    <li>JWT token should be in <strong>HttpOnly cookie</strong></li>
+    <li>Refresh tokens rotate correctly if implemented</li>
+  </ul>
+</div>
+
+<div class="step">
+  <h2>Step 4: Protected Routes</h2>
+  <ul>
+    <li>Try accessing <a href="http://127.0.0.1:3000/dashboard" target="_blank">/dashboard</a> or <a href="http://127.0.0.1:3000/profile" target="_blank">/profile</a> while logged out</li>
+    <li>Verify redirect to <a href="http://127.0.0.1:3000/login" target="_blank">/login</a></li>
+  </ul>
+</div>
+
+<div class="step">
+  <h2>Step 5: Dev Clean-Up & Notes</h2>
+  <ul>
+    <li>Close backend & frontend terminals safely</li>
+    <li>Note any console errors or warnings</li>
+    <li>Update <code>.env.local</code> or <code>.env</code> if needed</li>
+    <li>Keep this guide handy for future runs</li>
+  </ul>
+</div>
+
+<p class="done">✅ All steps complete → you’re ready for full local dev testing!</p>
+
+</body>
+</html>
