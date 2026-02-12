@@ -1,66 +1,35 @@
-'use client';
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+"use client";
+import { useState } from "react";
+import { registerUser } from "../../lib/api";
 
 export default function SignupPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [consent, setConsent] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const router = useRouter();
+  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (!consent) {
-      setError('You must agree to the terms and privacy policy');
-      return;
-    }
-
-    try {
-      const data = await api.signup({ email, password, consent });
-      setSuccess('Signup successful! Redirecting...');
-      router.push('/dashboard');
-    } catch (err) {
-      setError(err.message || 'Signup failed');
+    const result = await registerUser(formData);
+    if (result.id) {
+      setMessage(`Signup successful! Welcome ${result.username}`);
+    } else {
+      setMessage(`Error: ${result.detail || "Signup failed"}`);
     }
   };
 
   return (
-    <main>
+    <div>
       <h1>Signup</h1>
       <form onSubmit={handleSubmit}>
-        <label>Email:</label><br />
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        /><br />
-        <label>Password:</label><br />
-        <input
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        /><br />
-        <label>
-          <input
-            type="checkbox"
-            checked={consent}
-            onChange={e => setConsent(e.target.checked)}
-          />
-          I agree to the terms and privacy policy
-        </label><br /><br />
-        <button type="submit">Sign Up</button>
+        <input name="username" placeholder="Username" onChange={handleChange} />
+        <input name="email" placeholder="Email" onChange={handleChange} />
+        <input name="password" type="password" placeholder="Password" onChange={handleChange} />
+        <button type="submit">Register</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
-    </main>
+      {message && <p>{message}</p>}
+    </div>
   );
 }

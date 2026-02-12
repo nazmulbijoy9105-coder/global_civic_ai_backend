@@ -1,50 +1,35 @@
-'use client';
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '../lib/api';
+"use client";
+import { useState } from "react";
+import { loginUser } from "../../lib/api";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const router = useRouter();
+  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
-    try {
-      const data = await api.login({ email, password });
-      router.push('/dashboard');
-    } catch (err) {
-      setError(err.message || 'Login failed');
+    const result = await loginUser(formData);
+    if (result.access_token) {
+      setMessage(`Login successful! Token: ${result.access_token}`);
+    } else {
+      setMessage(`Error: ${result.detail || "Login failed"}`);
     }
   };
 
   return (
-    <main>
+    <div>
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
-        <label>Email:</label><br />
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <br />
-        <label>Password:</label><br />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <br /><br />
-        <button type="submit">Log In</button>
+        <input name="username" placeholder="Username" onChange={handleChange} />
+        <input name="email" placeholder="Email" onChange={handleChange} />
+        <input name="password" type="password" placeholder="Password" onChange={handleChange} />
+        <button type="submit">Login</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </main>
+      {message && <p>{message}</p>}
+    </div>
   );
 }

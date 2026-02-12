@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '../lib/api';
+import { loginUser, registerUser } from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -12,16 +12,14 @@ export function AuthProvider({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    api.getCurrentUser()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    // If you want to fetch current user, add a getCurrentUser function in lib/api.js
+    setLoading(false);
   }, []);
 
   const login = async (credentials) => {
     try {
-      const data = await api.login(credentials);
-      setUser(data.user);
+      const data = await loginUser(credentials);
+      setUser(data);
       router.push('/dashboard');
       return { success: true };
     } catch (error) {
@@ -31,8 +29,8 @@ export function AuthProvider({ children }) {
 
   const signup = async (userData) => {
     try {
-      const data = await api.signup(userData);
-      setUser(data.user);
+      const data = await registerUser(userData);
+      setUser(data);
       router.push('/dashboard');
       return { success: true };
     } catch (error) {
@@ -40,14 +38,9 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = async () => {
-    try {
-      await api.logout();
-      setUser(null);
-      router.push('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  const logout = () => {
+    setUser(null);
+    router.push('/login');
   };
 
   return (
@@ -57,8 +50,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  return context;
-};
-
+export const useAuth = () => useContext(AuthContext);
