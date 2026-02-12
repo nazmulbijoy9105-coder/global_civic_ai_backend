@@ -1,67 +1,50 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '../lib/api';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError('');
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        credentials: 'include',
-        body: new URLSearchParams({
-          username: email,
-          password: password,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.detail || 'Login failed')
-        return
-      }
-
-      router.push('/dashboard')
+      const data = await api.login({ email, password });
+      router.push('/dashboard');
     } catch (err) {
-      setError('Network error')
+      setError(err.message || 'Login failed');
     }
-  }
+  };
 
   return (
     <main>
       <h1>Login</h1>
-
       <form onSubmit={handleSubmit}>
+        <label>Email:</label><br />
         <input
           type="email"
-          placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
-
+        <br />
+        <label>Password:</label><br />
         <input
           type="password"
-          placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
+          required
         />
-
-        <button type="submit">Login</button>
+        <br /><br />
+        <button type="submit">Log In</button>
       </form>
-
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </main>
-  )
+  );
 }

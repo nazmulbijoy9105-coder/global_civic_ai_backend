@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '../../lib/api'; // Adjust path if needed
+import { api } from '@/lib/api';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -24,7 +24,7 @@ export default function SignupPage() {
 
     try {
       const data = await api.signup({ email, password, consent });
-      setSuccess('Signup successful! Redirecting to dashboard...');
+      setSuccess('Signup successful! Redirecting...');
       router.push('/dashboard');
     } catch (err) {
       setError(err.message || 'Signup failed');
@@ -35,32 +35,32 @@ export default function SignupPage() {
     <main>
       <h1>Signup</h1>
       <form onSubmit={handleSubmit}>
-        <label>Email:</label>
-        <input 
-          type="email" 
-          value={email} 
-          onChange={e => setEmail(e.target.value)} 
-          required 
-        />
-        <label>Password:</label>
-        <input 
-          type="password" 
-          value={password} 
-          onChange={e => setPassword(e.target.value)} 
-          required 
-        />
+        <label>Email:</label><br />
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        /><br />
+        <label>Password:</label><br />
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+        /><br />
         <label>
-          <input 
-            type="checkbox" 
-            checked={consent} 
-            onChange={e => setConsent(e.target.checked)} 
+          <input
+            type="checkbox"
+            checked={consent}
+            onChange={e => setConsent(e.target.checked)}
           />
-          I agree to the Terms & Privacy Policy
-        </label><br />
+          I agree to the terms and privacy policy
+        </label><br /><br />
         <button type="submit">Sign Up</button>
       </form>
-      {error && <p style={{color: 'red'}}>{error}</p>}
-      {success && <p style={{color: 'green'}}>{success}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {success && <p style={{ color: 'green' }}>{success}</p>}
     </main>
   );
 }
