@@ -1,18 +1,10 @@
-# Pydantic models placeholder
-from pydantic import BaseModel
+from sqlalchemy import Column, Integer, String
+from .database import Base
 
-class Question(BaseModel):
-    id: int
-    category: str
-    age_group: str
-    question_en: str
-    question_bn: str
-    question_hi: str
-    question_jp: str
-    question_cn: str
-    options: str
+class User(Base):
+    __tablename__ = "users"
 
-class Payment(BaseModel):
-    user_id: str
-    amount: float
-    currency: str
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
