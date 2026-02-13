@@ -5,7 +5,7 @@ from alembic import context
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from backend.app.database import Base
-import backend.app.models  # ensure models are imported
+import backend.app.models
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 engine = create_engine(DATABASE_URL)
@@ -22,3 +22,6 @@ def run_migrations_online():
         )
         with context.begin_transaction():
             context.run_migrations()
+
+# This line was missing!
+run_migrations_online()
