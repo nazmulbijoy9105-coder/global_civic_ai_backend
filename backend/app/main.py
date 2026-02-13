@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.routers import auth, payment, questions, admin
+from backend.app.routers import auth, payments, questions, admin
 
 # Environment
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -32,7 +32,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router, prefix="/auth")
-app.include_router(payment.router, prefix="/payment")
+app.include_router(payments.router, prefix="/payment")
 app.include_router(questions.router, prefix="/questions")
 app.include_router(admin.router, prefix="/admin")
 
