@@ -1,6 +1,6 @@
 # Payments router placeholder
 from fastapi import APIRouter
-from app.models import Payment
+from backend.app.models import Payment
 
 router = APIRouter()
 
