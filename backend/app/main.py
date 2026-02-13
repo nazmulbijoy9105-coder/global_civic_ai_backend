@@ -1,8 +1,8 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_jwt_auth import AuthJWT
-from fastapi_jwt_auth.exceptions import AuthJWTException
+from jose import JWTError, jwt
+from jose import JWTError
 from pydantic import BaseModel
 from backend.app.routers import auth, payment, questions, admin
 
