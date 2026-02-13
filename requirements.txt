@@ -1,8 +1,10 @@
-fastapi
-uvicorn[standard]   # includes useful extras like gunicorn, websockets
-sqlalchemy
-alembic
-psycopg2-binary     # Postgres driver for Render
-fastapi-jwt-auth
-pydantic
-python-dotenv       # optional, if you want to load .env files locally
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+sqlalchemy==2.0.36
+alembic==1.14.0
+psycopg2-binary==2.9.10
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pydantic==2.6.1
+python-dotenv==1.0.1
+python-multipart==0.0.9
