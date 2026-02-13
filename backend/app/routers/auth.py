@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-import jwt, os
+from jose import jwt, JWTError
+import os
 
 from .. import models, schemas
 from ..database import get_db
