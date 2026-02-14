@@ -26,3 +26,5 @@ Thumbs.db
 .idea/
 NUL
 node_modules/
+__pycache__/
+*.pyc
