@@ -8,7 +8,7 @@ async function fetchJson(url, options = {}) {
 }
 
 export async function registerUser({ username, email, password }) {
-  return fetchJson(API_URL + "/auth/register", {
+  return fetchJson(API_URL + "/auth/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, email, password }),
@@ -16,7 +16,7 @@ export async function registerUser({ username, email, password }) {
 }
 
 export async function loginUser({ email, password }) {
-  return fetchJson(API_URL + "/auth/login", {
+  return fetchJson(API_URL + "/auth/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
