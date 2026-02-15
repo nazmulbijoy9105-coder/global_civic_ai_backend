@@ -3,7 +3,7 @@ import { useState } from "react";
 import { loginUser } from "../../lib/api";
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
@@ -12,11 +12,11 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await loginUser(formData);
-    if (result.access_token) {
-      setMessage(`Login successful! Token: ${result.access_token}`);
-    } else {
-      setMessage(`Error: ${result.detail || "Login failed"}`);
+    try {
+      const result = await loginUser(formData);
+      setMessage("Login successful! Token: " + result.access_token);
+    } catch (err) {
+      setMessage("Error: " + err.message);
     }
   };
 
@@ -24,7 +24,6 @@ export default function LoginPage() {
     <div>
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
-        <input name="username" placeholder="Username" onChange={handleChange} />
         <input name="email" placeholder="Email" onChange={handleChange} />
         <input name="password" type="password" placeholder="Password" onChange={handleChange} />
         <button type="submit">Login</button>
