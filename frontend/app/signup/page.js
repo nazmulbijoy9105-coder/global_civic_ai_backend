@@ -12,11 +12,11 @@ export default function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await registerUser(formData);
-    if (result.id) {
-      setMessage(`Signup successful! Welcome ${result.username}`);
-    } else {
-      setMessage(`Error: ${result.detail || "Signup failed"}`);
+    try {
+      const result = await registerUser(formData);
+      setMessage("Signup successful! Welcome " + result.username);
+    } catch (err) {
+      setMessage("Error: " + err.message);
     }
   };
 
