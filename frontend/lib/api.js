@@ -1,29 +1,36 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
-export async function registerUser({ email, password, consent }) {
-  const res = await fetch(`${API_URL}/auth/signup`, {
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Request failed");
+  return data;
+}
+
+export async function registerUser({ username, email, password }) {
+  return fetchJson(API_URL + "/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ email, password, consent }),
+    body: JSON.stringify({ username, email, password }),
   });
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.detail || "Signup failed");
-  }
-  return res.json();
 }
 
 export async function loginUser({ email, password }) {
-  const res = await fetch(`${API_URL}/auth/login`, {
+  return fetchJson(API_URL + "/auth/login", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    credentials: "include",
-    body: new URLSearchParams({ username: email, password }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.detail || "Login failed");
-  }
-  return res.json();
+}
+
+export async function getAssessment() {
+  return fetchJson(API_URL + "/questions/assessment");
+}
+
+export async function getRandomQuestion() {
+  return fetchJson(API_URL + "/questions/random");
+}
+
+export async function checkHealth() {
+  return fetchJson(API_URL + "/health");
 }
