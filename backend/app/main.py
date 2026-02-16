@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, payments, questions, admin
+from backend.app.routers import auth, payments, questions, admin, adaptive
 
 app = FastAPI()
 
@@ -13,3 +13,4 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(payments.router, prefix="/payments", tags=["payments"])
 app.include_router(questions.router, prefix="/questions", tags=["questions"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
+app.include_router(adaptive.router, prefix="/adaptive", tags=["adaptive"])

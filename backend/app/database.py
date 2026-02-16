@@ -1,13 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Replace with your actual database URL
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-# For PostgreSQL: "postgresql://user:password@localhost/dbname"
+# Use your Render PostgreSQL URL here
+SQLALCHEMY_DATABASE_URL = "postgresql://global_civic_ai_db_user:lVoqemzHJhpgUrYFg2DQXxVTmtjFo89U@dpg-d67mb3ur433s73f9q660-a.oregon-postgres.render.com/global_civic_ai_db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
