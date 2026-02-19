@@ -16,6 +16,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "my-webhook-secret")
 
+
 def get_password_hash(password: str):
     return pwd_context.hash(password)
 
@@ -28,7 +29,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# Register new user
+
+# Register
 @router.post("/register", response_model=schemas.UserOut)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(
@@ -48,7 +50,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-# Login with payment enforcement
+
+# Login
 @router.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
@@ -59,9 +62,14 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail="Payment required")
 
     access_token = create_access_token(data={"sub": db_user.email})
-    return {"access_token": access_token, "token_type": "bearer", "user": {"id": db_user.id, "email": db_user.email}}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {"id": db_user.id, "email": db_user.email}
+    }
 
-# Mark user as paid manually
+
+# Mark user as paid
 @router.post("/mark-paid/{user_id}")
 def mark_paid(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -73,7 +81,8 @@ def mark_paid(user_id: int, db: Session = Depends(get_db)):
     db.refresh(user)
     return {"message": "Payment status updated", "user": {"id": user.id, "email": user.email, "has_paid": user.has_paid}}
 
-# Generic webhook for payment providers
+
+# Webhook
 @router.post("/payment-webhook")
 async def payment_webhook(request: Request, db: Session = Depends(get_db), secret: str = None):
     if secret != WEBHOOK_SECRET:
@@ -83,30 +92,29 @@ async def payment_webhook(request: Request, db: Session = Depends(get_db), secre
     user_id = payload.get("user_id")
     provider = payload.get("provider", "unknown")
     amount = payload.get("amount", 0.0)
-    status = payload.get("status")
+    payment_status = payload.get("status")
 
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    # Record payment
     payment = models.PaymentHistory(
         user_id=user.id,
         provider=provider,
         amount=amount,
-        status=status,
+        status=payment_status,
     )
     db.add(payment)
 
-    # Flip has_paid if success
-    if status == "success":
+    if payment_status == "success":
         user.has_paid = True
 
     db.commit()
     db.refresh(user)
-    return {"message": f"Payment recorded ({status})", "user": {"id": user.id, "email": user.email, "has_paid": user.has_paid}}
+    return {"message": f"Payment recorded ({payment_status})", "user": {"id": user.id, "email": user.email, "has_paid": user.has_paid}}
 
-# View user payment history
+
+# Payment history
 @router.get("/payments/{user_id}")
 def get_payments(user_id: int, db: Session = Depends(get_db)):
     payments = db.query(models.PaymentHistory).filter(models.PaymentHistory.user_id == user_id).all()

@@ -1,24 +1,18 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import PaymentHistory
+from .. import models, schemas
+from ..database import get_db
 
-router = APIRouter()
+router = APIRouter(tags=["questions"])
 
-@router.post("/create")
-def create_payment(user_id: int, amount: int, provider: str, db: Session = Depends(get_db)):
-    payment = PaymentHistory(
-        user_id=user_id,
-        amount=amount,
-        provider=provider,
-        status="pending"
-    )
-    db.add(payment)
+@router.get("/questions")
+def get_questions(db: Session = Depends(get_db)):
+    return db.query(models.Question).all()
+
+@router.post("/responses")
+def submit_response(response: schemas.ResponseCreate, db: Session = Depends(get_db)):
+    db_response = models.Response(**response.dict())
+    db.add(db_response)
     db.commit()
-    db.refresh(payment)
-    return {"status": "success", "payment_id": payment.id, "amount": amount}
-
-@router.get("/history/{user_id}")
-def payment_history(user_id: int, db: Session = Depends(get_db)):
-    payments = db.query(PaymentHistory).filter(PaymentHistory.user_id == user_id).all()
-    return payments
+    db.refresh(db_response)
+    return db_response
