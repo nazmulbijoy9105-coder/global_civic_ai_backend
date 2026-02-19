@@ -51,22 +51,25 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 
-# Login
+# Login (payment check removed for now)
 @router.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    if not db_user.has_paid:
-        raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail="Payment required")
-
     access_token = create_access_token(data={"sub": db_user.email})
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": {"id": db_user.id, "email": db_user.email}
+        "user": {"id": db_user.id, "email": db_user.email, "has_paid": db_user.has_paid}
     }
+
+
+# Get current user
+@router.get("/me")
+def get_me(token: str = Depends(lambda: None), db: Session = Depends(get_db)):
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Use Authorization header")
 
 
 # Mark user as paid
@@ -75,7 +78,6 @@ def mark_paid(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
     user.has_paid = True
     db.commit()
     db.refresh(user)
@@ -117,7 +119,6 @@ async def payment_webhook(request: Request, db: Session = Depends(get_db), secre
 # Payment history
 @router.get("/payments/{user_id}")
 def get_payments(user_id: int, db: Session = Depends(get_db)):
-    payments = db.query(models.PaymentHistory).filter(models.PaymentHistory.user_id == user_id).all()
-    if not payments:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No payments found")
+    payments = db.query(models.PaymentHistory).fi
+raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No payments found")
     return payments
