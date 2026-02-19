@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, List
-from ..adaptive_engine import AdaptivePsychometricEngine
+from ..services.adaptive_engine import AdaptivePsychometricEngine
 
 router = APIRouter(prefix="/adaptive", tags=["adaptive"])
 
-# --- Request Schemas (local, engine-specific) ---
+# --- Request Schemas ---
 
 class StartSessionRequest(BaseModel):
     question_bank: Dict[str, List[Dict]]
@@ -21,7 +21,7 @@ class AuditFactorsRequest(BaseModel):
     trait: str
     factors: Dict[str, float]
 
-# In-memory session store (one engine per session key)
+# In-memory session store
 sessions: Dict[str, AdaptivePsychometricEngine] = {}
 
 
@@ -79,24 +79,3 @@ def end_session(session_id: str):
 
     del sessions[session_id]
     return {"message": f"Session '{session_id}' ended"}
-```
-
-**One extra step** — move the engine class into its own file so the import works cleanly. Save your `AdaptivePsychometricEngine` class as:
-```
-backend/app/adaptive_engine.py
-```
-
-That's it. Your full router structure is now:
-```
-backend/app/
-├── adaptive_engine.py       ← engine class lives here
-├── schemas.py
-├── models.py
-├── database.py
-├── main.py
-└── routers/
-    ├── auth.py
-    ├── payments.py
-    ├── questions.py
-    ├── admin.py
-    └── adaptive.py          ← router wraps the engine
