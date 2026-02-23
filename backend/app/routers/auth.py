@@ -4,6 +4,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 import os
+import uuid
 
 from .. import models, schemas
 from ..database import get_db
@@ -11,11 +12,14 @@ from ..database import get_db
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "my-webhook-secret")
 
+# -------------------- PASSWORD --------------------
 
 def get_password_hash(password: str):
     return pwd_context.hash(password)
@@ -23,102 +27,110 @@ def get_password_hash(password: str):
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+# -------------------- TOKENS --------------------
+
+def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire, "type": "refresh"})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# Register
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+
+# -------------------- REGISTER --------------------
+
 @router.post("/register", response_model=schemas.UserOut)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(
-        (models.User.username == user.username) | (models.User.email == user.email)
+        (models.User.username == user.username) |
+        (models.User.email == user.email)
     ).first()
+
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username or email already registered")
+        raise HTTPException(
+            status_code=400,
+            detail="Username or email already registered"
+        )
 
     db_user = models.User(
         username=user.username,
         email=user.email,
         hashed_password=get_password_hash(user.password),
-        has_paid=False,
+        is_verified=False,
+        has_paid=False
     )
+
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    # Demo email verification token
+    verification_token = str(uuid.uuid4())
+    print(f"[EMAIL VERIFICATION TOKEN]: {verification_token}")
+
     return db_user
 
+# -------------------- LOGIN --------------------
 
-# Login (payment check removed for now)
-@router.post("/login")
+@router.post("/login", response_model=schemas.Token)
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    access_token = create_access_token(data={"sub": db_user.email})
+    db_user = db.query(models.User).filter(
+        models.User.username == user.username
+    ).first()
+
+    if not db_user or not verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    access_token = create_access_token({"sub": db_user.email})
+    refresh_token = create_refresh_token({"sub": db_user.email})
+
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
-        "user": {"id": db_user.id, "email": db_user.email, "has_paid": db_user.has_paid}
+        "user": db_user
     }
 
+# -------------------- REFRESH TOKEN --------------------
 
-# Get current user
-@router.get("/me")
-def get_me(token: str = Depends(lambda: None), db: Session = Depends(get_db)):
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Use Authorization header")
+@router.post("/refresh", response_model=schemas.Token)
+def refresh(refresh_token: str, db: Session = Depends(get_db)):
 
+    payload = decode_token(refresh_token)
 
-# Mark user as paid
-@router.post("/mark-paid/{user_id}")
-def mark_paid(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not payload or payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    email = payload.get("sub")
+
+    user = db.query(models.User).filter(
+        models.User.email == email
+    ).first()
+
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    user.has_paid = True
-    db.commit()
-    db.refresh(user)
-    return {"message": "Payment status updated", "user": {"id": user.id, "email": user.email, "has_paid": user.has_paid}}
+        raise HTTPException(status_code=404, detail="User not found")
 
+    new_access = create_access_token({"sub": user.email})
+    new_refresh = create_refresh_token({"sub": user.email})
 
-# Webhook
-@router.post("/payment-webhook")
-async def payment_webhook(request: Request, db: Session = Depends(get_db), secret: str = None):
-    if secret != WEBHOOK_SECRET:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized webhook")
-
-    payload = await request.json()
-    user_id = payload.get("user_id")
-    provider = payload.get("provider", "unknown")
-    amount = payload.get("amount", 0.0)
-    payment_status = payload.get("status")
-
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    payment = models.PaymentHistory(
-        user_id=user.id,
-        provider=provider,
-        amount=amount,
-        status=payment_status,
-    )
-    db.add(payment)
-
-    if payment_status == "success":
-        user.has_paid = True
-
-    db.commit()
-    db.refresh(user)
-    return {"message": f"Payment recorded ({payment_status})", "user": {"id": user.id, "email": user.email, "has_paid": user.has_paid}}
-
-
-# Payment history
-@router.get("/payments/{user_id}")
-def get_payments(user_id: int, db: Session = Depends(get_db)):
-    payments = db.query(models.PaymentHistory).fi
-raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No payments found")
-    return payments
+    return {
+        "access_token": new_access,
+        "refresh_token": new_refresh,
+        "token_type": "bearer",
+        "user": user
+    }

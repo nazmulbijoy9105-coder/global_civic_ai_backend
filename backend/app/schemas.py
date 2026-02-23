@@ -1,12 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional
-
-
-# --- User Schemas ---
+from pydantic import BaseModel, EmailStr
 
 class UserCreate(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
 
 class UserLogin(BaseModel):
@@ -16,67 +12,16 @@ class UserLogin(BaseModel):
 class UserOut(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
+    is_verified: bool
+    has_paid: bool
+    role: str
 
     class Config:
-        from_attributes = True
-
-
-# --- Token Schemas ---
+        orm_mode = True
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
-
-
-# --- Question Schemas ---
-
-class QuestionBase(BaseModel):
-    text: str
-
-class QuestionCreate(QuestionBase):
-    pass
-
-class Question(QuestionBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-
-# --- Response Schemas ---
-
-class ResponseBase(BaseModel):
-    user_id: int
-    question_id: int
-    answer: str
-
-class ResponseCreate(ResponseBase):
-    pass
-
-class Response(ResponseBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-
-# --- Payment Schemas ---
-
-class PaymentCreate(BaseModel):
-    user_id: int
-    amount: float
-    provider: str
-
-class PaymentOut(BaseModel):
-    id: int
-    user_id: int
-    amount: float
-    provider: str
-    status: str
-
-    class Config:
-        from_attributes = True
+    user: UserOut

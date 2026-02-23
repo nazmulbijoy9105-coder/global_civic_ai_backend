@@ -1,33 +1,57 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+import axios from "axios";
 
-// Health check
-export async function getHealth() {
-  return (await fetch(`${API_BASE}/health`)).json();
-}
+const API_BASE = "https://global-civic-ai-backend.onrender.com";
 
-// Login
-export async function loginUser(credentials) {
-  return (
-    await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(credentials),
-    })
-  ).json();
-}
+// Create axios instance
+const apiClient = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-// Signup
-export async function registerUser(data) {
-  return (
-    await fetch(`${API_BASE}/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-  ).json();
-}
+// Automatically attach token to every request
+apiClient.interceptors.request.use((config) => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-// Current user
-export async function getCurrentUser() {
-  return (await fetch(`${API_BASE}/auth/me`)).json();
-}
+// Handle global errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+    }
+    return Promise.reject(
+      error.response?.data?.detail
+        ? new Error(error.response.data.detail)
+        : new Error("Something went wrong")
+    );
+  }
+);
+
+export const api = {
+  signup: async (userData) => {
+    const res = await apiClient.post("/auth/register", userData);
+    return res.data;
+  },
+
+  login: async ({ username, password }) => {
+    const res = await apiClient.post("/auth/login", { username, password });
+    localStorage.setItem("token", res.data.access_token);
+    return res.data;
+  },
+
+  getCurrentUser: async () => {
+    const res = await apiClient.get("/users/me");
+    return res.data;
+  },
+
+  logout: () => {
+    localStorage.removeItem("token");
+  },
+};
