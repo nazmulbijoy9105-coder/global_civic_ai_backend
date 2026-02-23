@@ -1,20 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+from jose import JWTError, jwt
+from dotenv import load_dotenv
 import os
 
-from .. import models, schemas
-from ..database import get_db
+from app import models, schemas, database
 
-router = APIRouter(prefix="/users", tags=["users"])
-
-SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key")
+# ✅ Load environment variables
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")  # mandatory: set in .env
 ALGORITHM = "HS256"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# ✅ OAuth2 scheme
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+router = APIRouter(tags=["Users"])
+
+# ✅ Helper: decode JWT
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -33,6 +37,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_exception
     return user
 
-@router.get("/me", response_model=schemas.UserOut)
-def get_me(current_user: models.User = Depends(get_current_user)):
+# ✅ Endpoint: get current user
+@router.get("/users/me", response_model=schemas.UserOut)
+def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user

@@ -1,13 +1,28 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+import os
 
-# Render PostgreSQL URL
-SQLALCHEMY_DATABASE_URL = "postgresql://global_civic_ai_db_user:lVoqemzHJhpgUrYFg2DQXxVTmtjFo89U@dpg-d67mb3ur433s73f9q660-a.oregon-postgres.render.com/global_civic_ai_db"
+# ✅ Load environment variables from .env
+load_dotenv()
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# ✅ Database URL (Render PostgreSQL)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set. Please configure it in your .env or Render environment variables.")
+
+# ✅ SQLAlchemy engine
+engine = create_engine(DATABASE_URL)
+
+# ✅ Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# ✅ Base class for models
 Base = declarative_base()
 
+# ✅ Dependency for FastAPI routes
 def get_db():
     db = SessionLocal()
     try:
