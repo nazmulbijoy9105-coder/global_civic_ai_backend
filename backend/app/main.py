@@ -15,6 +15,10 @@ app = FastAPI(
     description="Backend API for Global Civic AI platform"
 )
 
+@app.get("/")
+def root():
+    return {"message": "Global Civic AI API", "docs": "/docs"}
+
 # ✅ Include all routers
 app.include_router(auth.router)
 app.include_router(users.router)
