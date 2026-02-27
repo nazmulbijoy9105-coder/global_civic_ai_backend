@@ -11,7 +11,7 @@ from backend.app import models, schemas
 from backend.app.database import get_db
 
 load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")  # set in .env
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

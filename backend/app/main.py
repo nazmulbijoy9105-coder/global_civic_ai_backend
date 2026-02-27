@@ -6,20 +6,20 @@ from backend.app.routers import (
     adaptive,
     assessment,
     payments,
-    admin
+    admin,
 )
 
 app = FastAPI(
     title="Global Civic AI",
     version="1.0.0",
-    description="Backend API for Global Civic AI platform"
+    description="Backend API for Global Civic AI platform",
 )
 
 @app.get("/")
 def root():
     return {"message": "Global Civic AI API", "docs": "/docs"}
 
-# ✅ Include all routers
+# Include all routers
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(questions.router)
@@ -28,7 +28,7 @@ app.include_router(assessment.router)
 app.include_router(payments.router)
 app.include_router(admin.router)
 
-# ✅ Health check endpoint
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}

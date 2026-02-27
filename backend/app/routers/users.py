@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from backend.app import models, schemas, database
 
 load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")  # same as in auth.py
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key")
 ALGORITHM = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
