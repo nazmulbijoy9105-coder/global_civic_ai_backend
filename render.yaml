@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: global-civic-ai-backend
+    env: python
+    region: oregon
+    plan: free
+    
+    # Build command
+    buildCommand: pip install -r requirements.txt
+    
+    # Start command - entry point must be correct
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+    
+    # Environment variables from Render dashboard
+    envVars:
+      - key: DATABASE_URL
+        scope: build,runtime
+        sync: false
+      - key: SECRET_KEY
+        scope: build,runtime
+        sync: false
+      - key: CORS_ORIGINS
+        value: http://localhost:3000,https://global-civic-ai-frontend.onrender.com
+      - key: ENVIRONMENT
+        value: production
+    
+    # Auto-deploy on GitHub push
+    repo: https://github.com/nazmulbijoy9105-coder/global_civic_ai_backend
+    branch: main
+    autoDeploy: true
+    
+    # Root directory
+    rootDir: ./
