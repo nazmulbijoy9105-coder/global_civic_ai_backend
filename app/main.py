@@ -8,7 +8,7 @@ from backend.app import models  # ✅ THIS IMPORTS User, Question, etc
 from backend.app.routers import auth, users, questions, adaptive, assessment, payments, admin, report
 
 # Create all tables on startup
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 load_dotenv()
 
