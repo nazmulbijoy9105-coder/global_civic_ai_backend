@@ -4,13 +4,13 @@ from dotenv import load_dotenv
 import os
 
 from backend.app.database import engine, Base
-from backend.app import models  # ✅ THIS IMPORTS User, Question, etc
+from backend.app import models
 from backend.app.routers import auth, users, questions, adaptive, assessment, payments, admin, report
+
+load_dotenv()
 
 # Create all tables on startup
 Base.metadata.create_all(bind=engine)
-
-load_dotenv()
 
 app = FastAPI(
     title="Global Civic AI",
@@ -18,7 +18,6 @@ app = FastAPI(
     description="Backend API for Global Civic AI platform",
 )
 
-# CORS
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
@@ -36,7 +35,6 @@ def root():
 def health_check():
     return {"status": "ok"}
 
-# Include all routers
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(questions.router)
