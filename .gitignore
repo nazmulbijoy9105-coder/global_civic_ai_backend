@@ -3,40 +3,25 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# FastAPI / SQLAlchemy
 *.db
 *.sqlite3
 
-# Alembic / Migrations
-alembic/versions/*.pyc
-alembic/versions/__pycache__/
-
-# Node / Frontend
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment files
+# Environment
 .env
-.env.local
-.env.*.local
-frontend/.env.production
+*.env.*
+*.backup
 
-# Scripts / Temp
-run_backend.sh
-start.bat
+# Logs
 *.log
 
-# OS / Editors
+# Node/Frontend (if you add React/Next.js later)
+node_modules/
+dist/
+.next/
+build/
+
+# OS files
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
-NUL
-__pycache__/
-*.pyc
-*.backup
-.env
-__pycache__/
