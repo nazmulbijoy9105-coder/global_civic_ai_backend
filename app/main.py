@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 
 from backend.app.database import engine, Base
+from backend.app import models  # ✅ THIS IMPORTS User, Question, etc
 from backend.app.routers import auth, users, questions, adaptive, assessment, payments, admin, report
 
 # Create all tables on startup
