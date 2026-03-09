@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
+from backend.app.database import engine, Base
+from backend.app import models
 from backend.app.routers import (
     auth,
     users,
@@ -14,6 +16,10 @@ from backend.app.routers import (
 )
 
 load_dotenv()
+
+# CREATE ALL TABLES ON STARTUP
+Base.metadata.create_all(bind=engine)
+print("✅ Database tables created successfully!")
 
 app = FastAPI(
     title="Global Civic AI",
