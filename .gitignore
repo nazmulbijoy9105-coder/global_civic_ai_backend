@@ -37,3 +37,6 @@ Thumbs.db
 NUL
 __pycache__/
 *.pyc
+*.backup
+.env
+__pycache__/
