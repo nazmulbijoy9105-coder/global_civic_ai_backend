@@ -46,3 +46,13 @@ class SessionOut(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime]
     model_config = ConfigDict(from_attributes=True)
+class ResponseOut(BaseModel):
+    """Response output schema"""
+    id: int
+    question_id: int
+    content: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
