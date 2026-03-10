@@ -1,45 +1,43 @@
 from fastapi import FastAPI
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-import os
-
-from backend.app.database import engine, Base
-from backend.app import models
-from backend.app.routers import auth, users, questions, adaptive, assessment, payments, admin, report
-
-load_dotenv()
-
-# Create all tables on startup
-Base.metadata.create_all(bind=engine)
+from .routers import auth, questions # Add assessment here when ready
 
 app = FastAPI(
     title="Global Civic AI",
-    version="1.0.0",
     description="Backend API for Global Civic AI platform",
+    version="1.0.0",
+    docs_url=None, 
+    redoc_url=None
 )
 
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def root():
-    return {"message": "Global Civic AI API", "docs": "/docs", "version": "1.0.0"}
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - API Docs",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
+        custom_css="""
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; background-color: #f5f5f7; }
+        .swagger-ui .topbar { display: none }
+        .opblock { border-radius: 14px !important; border: none !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; margin-bottom: 20px !important; }
+        .opblock-summary { padding: 15px !important; }
+        .swagger-ui .info .title { font-size: 32px; font-weight: 700; color: #1d1d1f; }
+        """
+    )
+
+app.include_router(auth.router)
+app.include_router(questions.router)
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
-
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(questions.router)
-app.include_router(adaptive.router)
-app.include_router(assessment.router)
-app.include_router(payments.router)
-app.include_router(admin.router)
-app.include_router(report.router)
+    return {"status": "healthy"}
