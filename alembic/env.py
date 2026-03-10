@@ -1,21 +1,32 @@
 import os
+import sys
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from dotenv import load_dotenv
 
+# 1. Load environment variables
 load_dotenv()
+
+# 2. Add the parent directory to sys.path so 'app' can be found
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+# 3. Import your models (Ensure these paths match your folder structure)
+from app.database import Base
+from app import models 
+
 config = context.config
-config.set_main_option("sqlalchemy.url", os.environ.get("postgresql://civicuser:eC4wiydQALfMdj9YuRiVMp51n1M7eZCr@dpg-d6nf6ifgi27c7393q0u0-a.oregon-postgres.render.com/civic_ai_lmxt", ""))
+
+# 4. FIX: Use single sets of quotes here
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-from app.database import Base
-from app import models  # ✅ ensures all models are registered
+target_metadata = Base.metadata
+# ... rest of your file (run_migrations_offline/online) remains the same
 
 target_metadata = Base.metadata
 
