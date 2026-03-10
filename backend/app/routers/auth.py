@@ -2,9 +2,9 @@ import os
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from backend.app import models, schemas, database
+from backend.app.database import get_db
 from dotenv import load_dotenv
 
 # Internal imports - Ensure these match your actual folder structure

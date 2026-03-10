@@ -1,8 +1,8 @@
 import os
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends
+from backend.app import models, schemas
+from backend.app.database import get_db
 from jose import JWTError, jwt
 from dotenv import load_dotenv
 
