@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 # --- AUTH SCHEMAS ---
 
@@ -35,7 +35,7 @@ class UserOut(BaseModel):
 class QuestionOut(BaseModel):
     id: int
     text: str
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 class ResponseCreate(BaseModel):
@@ -50,14 +50,14 @@ class ResponseOut(BaseModel):
     question_id: int
     trait: str
     score: float
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 class SessionOut(BaseModel):
     id: int
     user_id: int
     created_at: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 # --- ANALYTICS & PAYMENTS ---
@@ -68,7 +68,7 @@ class PaymentHistoryOut(BaseModel):
     amount: float
     currency: str
     timestamp: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 class AdaptiveScoreOut(BaseModel):
@@ -77,7 +77,7 @@ class AdaptiveScoreOut(BaseModel):
     trait: str
     score: float
     confidence: float
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 class AuditLogOut(BaseModel):
@@ -86,5 +86,5 @@ class AuditLogOut(BaseModel):
     trait: str
     factor: str
     value: float
-    
+
     model_config = ConfigDict(from_attributes=True)
