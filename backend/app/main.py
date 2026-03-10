@@ -1,10 +1,13 @@
+import os
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-import os
 
-from backend.app.database import engine, Base
-from backend.app import models
+# Import database engine and routers
+# Note: Ensure your directory structure matches 'backend/app/...' 
+# or adjust these imports if you are running from within the app folder.
+from backend.app.database import engine
 from backend.app.routers import (
     auth,
     users,
@@ -15,11 +18,12 @@ from backend.app.routers import (
     admin,
 )
 
+# Initialize environment variables
 load_dotenv()
 
-# CREATE ALL TABLES ON STARTUP
-Base.metadata.create_all(bind=engine)
-print("✅ Database tables created successfully!")
+# Setup logging for better visibility in Render logs
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Global Civic AI",
@@ -27,8 +31,11 @@ app = FastAPI(
     description="Backend API for Global Civic AI platform",
 )
 
-# CORS configuration
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+# --- CORS CONFIGURATION ---
+# We split by comma and strip whitespace to prevent "Protocol Error" 
+# caused by accidental spaces in Render environment variables.
+raw_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+CORS_ORIGINS = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,22 +45,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- ROUTES ---
 
-@app.get("/")
+@app.get("/", tags=["Root"])
 def root():
-    return {"message": "Global Civic AI API", "docs": "/docs", "status": "running"}
+    """Welcome endpoint with useful links."""
+    return {
+        "message": "Welcome to Global Civic AI API",
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "status": "active"
+    }
 
-
-@app.get("/health")
+@app.get("/health", tags=["System"])
 def health_check():
-    return {"status": "ok", "service": "Global Civic AI Backend"}
+    """Endpoint for Render health monitoring."""
+    return {
+        "status": "ok",
+        "service": "Global Civic AI Backend",
+        "environment": os.getenv("ENVIRONMENT", "production")
+    }
 
+# --- ROUTER INCLUSIONS ---
+# Standardizing prefixes helps with API versioning and organization.
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(questions.router, prefix="/questions", tags=["Questions"])
+app.include_router(adaptive.router, prefix="/adaptive", tags=["Adaptive Logic"])
+app.include_router(assessment.router, prefix="/assessment", tags=["Assessments"])
+app.include_router(payments.router, prefix="/payments", tags=["Payments"])
+app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 
-# Include all routers
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(questions.router)
-app.include_router(adaptive.router)
-app.include_router(assessment.router)
-app.include_router(payments.router)
-app.include_router(admin.router)
+# --- STARTUP LOGGING ---
+@app.on_event("startup")
+async def startup_event():
+    logger.info("🚀 Global Civic AI Backend is starting up...")
+    logger.info(f"Allowing CORS Origins: {CORS_ORIGINS}")

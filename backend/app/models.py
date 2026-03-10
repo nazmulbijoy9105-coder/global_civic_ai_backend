@@ -1,8 +1,11 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from .database import Base
 
+def get_utc_now():
+    """Returns the current UTC time."""
+    return datetime.now(timezone.utc)
 
 class User(Base):
     __tablename__ = "users"
@@ -11,7 +14,8 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    role = Column(String, default="user") # Matches auth.py logic
+    created_at = Column(DateTime, default=get_utc_now)
     is_admin = Column(Boolean, default=False)
     has_paid = Column(Boolean, default=False)
 
@@ -43,9 +47,10 @@ class Response(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     question_id = Column(Integer, ForeignKey("questions.id"))
     session_id = Column(Integer, ForeignKey("assessment_sessions.id"), nullable=True)
+    trait = Column(String, nullable=True) # Essential for scoring logic
     answer = Column(String, nullable=True)
     score = Column(Float, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
     user = relationship("User", back_populates="responses")
     question = relationship("Question", back_populates="responses")
@@ -59,7 +64,7 @@ class AssessmentSession(Base):
     status = Column(String, default="in_progress")
     current_index = Column(Integer, default=0)
     total_questions = Column(Integer, default=20)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
     completed_at = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="sessions")
@@ -76,7 +81,7 @@ class PaymentHistory(Base):
     currency = Column(String, default="USD")
     status = Column(String, default="completed")
     payment_method = Column(String, default="card")
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=get_utc_now)
 
     user = relationship("User", back_populates="payments")
 
