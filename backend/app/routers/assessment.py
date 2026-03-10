@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app import models, schemas, database
-from app.services.adaptive_engine import AdaptivePsychometricEngine
+from backend.app import models, schemas, database
+from backend.app.services.adaptive_engine import AdaptivePsychometricEngine
 
 router = APIRouter(prefix="/assessment", tags=["Assessment"])
 

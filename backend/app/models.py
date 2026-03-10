@@ -7,6 +7,7 @@ def get_utc_now():
     """Returns the current UTC time."""
     return datetime.now(timezone.utc)
 
+# --- USER MODEL ---
 class User(Base):
     __tablename__ = "users"
 
@@ -14,7 +15,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(String, default="user") # Matches auth.py logic
+    role = Column(String, default="user")  # Matches auth.py logic
     created_at = Column(DateTime, default=get_utc_now)
     is_admin = Column(Boolean, default=False)
     has_paid = Column(Boolean, default=False)
@@ -23,7 +24,7 @@ class User(Base):
     payments = relationship("PaymentHistory", back_populates="user")
     sessions = relationship("AssessmentSession", back_populates="user")
 
-
+# --- QUESTION MODEL ---
 class Question(Base):
     __tablename__ = "questions"
 
@@ -39,7 +40,7 @@ class Question(Base):
 
     responses = relationship("Response", back_populates="question")
 
-
+# --- RESPONSE MODEL ---
 class Response(Base):
     __tablename__ = "responses"
 
@@ -47,7 +48,7 @@ class Response(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     question_id = Column(Integer, ForeignKey("questions.id"))
     session_id = Column(Integer, ForeignKey("assessment_sessions.id"), nullable=True)
-    trait = Column(String, nullable=True) # Essential for scoring logic
+    trait = Column(String, nullable=True)  # Essential for scoring logic
     answer = Column(String, nullable=True)
     score = Column(Float, nullable=False)
     created_at = Column(DateTime, default=get_utc_now)
@@ -55,7 +56,7 @@ class Response(Base):
     user = relationship("User", back_populates="responses")
     question = relationship("Question", back_populates="responses")
 
-
+# --- ASSESSMENT SESSION MODEL ---
 class AssessmentSession(Base):
     __tablename__ = "assessment_sessions"
 
@@ -71,7 +72,7 @@ class AssessmentSession(Base):
     scores = relationship("AdaptiveScore", back_populates="session")
     audit_logs = relationship("AuditLog", back_populates="session")
 
-
+# --- PAYMENT HISTORY MODEL ---
 class PaymentHistory(Base):
     __tablename__ = "payment_history"
 
@@ -85,7 +86,7 @@ class PaymentHistory(Base):
 
     user = relationship("User", back_populates="payments")
 
-
+# --- ADAPTIVE SCORE MODEL ---
 class AdaptiveScore(Base):
     __tablename__ = "adaptive_scores"
 
@@ -97,7 +98,7 @@ class AdaptiveScore(Base):
 
     session = relationship("AssessmentSession", back_populates="scores")
 
-
+# --- AUDIT LOG MODEL ---
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
