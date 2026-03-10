@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app import models, schemas, database
-from app.services.adaptive_engine import AdaptivePsychometricEngine
+from backend.app import models, schemas, database
+from backend.app.database import get_db
+from backend.app.services.adaptive_engine import AdaptivePsychometricEngine
 
 router = APIRouter(prefix="/adaptive", tags=["Adaptive"])
 
@@ -30,7 +31,7 @@ def get_next_question(trait: str):
 
 # ✅ Submit an answer
 @router.post("/answer")
-def submit_answer(trait: str, question_id: int, score: float, db: Session = Depends(database.get_db)):
+def submit_answer(trait: str, question_id: int, score: float, db: Session = Depends(get_db)):
     if trait not in question_bank:
         raise HTTPException(status_code=404, detail="Trait not found")
 
@@ -59,7 +60,7 @@ def set_audit(trait: str, factors: dict):
 
 # ✅ Generate full report
 @router.get("/report")
-def generate_report(db: Session = Depends(database.get_db)):
+def generate_report(db: Session = Depends(get_db)):
     report = engine.generate_report()
 
     # Save adaptive scores + audit logs in DB
