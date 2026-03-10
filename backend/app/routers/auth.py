@@ -1,118 +1,38 @@
-import os
-from datetime import datetime, timedelta, timezone
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from backend.app import models, schemas, database
 from backend.app.database import get_db
-from dotenv import load_dotenv
+from backend.app import models
 
-# Internal imports - Ensure these match your actual folder structure
-from backend.app import models, schemas
-from backend.app.database import get_db
+# Reuse get_current_user and require_roles from earlier
 
-load_dotenv()
-
-# --- CONFIGURATION ---
-# IMPORTANT: Set a long, random SECRET_KEY in your Render Env Group
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key-for-dev-only")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
-
-router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-# Using bcrypt specifically for password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# --- UTILS ---
-
-def hash_password(password: str) -> str:
-    """Hash password using bcrypt."""
-    return pwd_context.hash(password)
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify plain password against the stored hash."""
-    return pwd_context.verify(password, hashed)
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    """Generate a JWT access token."""
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-# --- ENDPOINTS ---
-
-@router.post("/register", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED)
-def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    """Register a new user with hashed password."""
-    try:
-        # 1. Check if email exists
-        if db.query(models.User).filter(models.User.email == user.email).first():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Email already registered"
-            )
-
-        # 2. Check if username exists
-        if db.query(models.User).filter(models.User.username == user.username).first():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Username already taken"
-            )
-
-        # 3. Hash and create
-        new_user = models.User(
-            username=user.username,
-            email=user.email,
-            password_hash=hash_password(user.password),
-            role="user"  # Default role
-        )
-
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        return new_user
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
+def require_owner_or_roles(allowed_roles: list[str], resource_owner_id: int, current_user: models.User):
+    """
+    Allow access if the current user is the resource owner OR has one of the allowed roles.
+    """
+    if current_user.id != resource_owner_id and current_user.role not in allowed_roles:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database error during registration: {str(e)}"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this resource",
         )
+    return True
 
-@router.post("/login")
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    """Authenticate user and return a Bearer JWT."""
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
+# --- Example Protected Route with Ownership Check ---
 
-    if not db_user or not verify_password(user.password, db_user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+@router.get("/users/{user_id}")
+def get_user_profile(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """
+    Allow users to view their own profile, or admins to view any profile.
+    """
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    # Use email as the subject (unique identifier)
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": db_user.email, "role": db_user.role},
-        expires_delta=access_token_expires,
-    )
+    # Ownership or role check
+    require_owner_or_roles(["admin"], resource_owner_id=user.id, current_user=current_user)
 
     return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": {
-            "id": db_user.id,
-            "username": db_user.username,
-            "role": db_user.role
-        }
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
     }
