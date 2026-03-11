@@ -32,9 +32,8 @@ app = FastAPI(
 )
 
 # --- CORS CONFIGURATION ---
-# We split by comma and strip whitespace to prevent "Protocol Error" 
-# caused by accidental spaces in Render environment variables.
-raw_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+# We use your production frontend URL as the default
+raw_origins = os.getenv("CORS_ORIGINS", "https://global-civic-ai-frontend.onrender.com")
 CORS_ORIGINS = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
 
 app.add_middleware(
