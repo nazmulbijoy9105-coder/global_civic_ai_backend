@@ -65,12 +65,10 @@ def health_check():
         "environment": os.getenv("ENVIRONMENT", "production")
     }
 
-# --- CORRECTED ROUTER INCLUSIONS ---
-# Remove the manual 'prefix' here if your router files already have them, 
-# OR keep these and remove them from the router files (auth.py, etc.)
-app.include_router(auth.router, tags=["Authentication"]) # Removed prefix="/auth"
-app.include_router(users.router, tags=["Users"]) # Removed prefix="/users"
-app.include_router(questions.router, tags=["Questions"]) # Removed prefix="/questions"
+# --- CORRECTED ROUTER INCLUSIONS (No Double Prefixes) ---
+app.include_router(auth.router, tags=["Authentication"])
+app.include_router(users.router, tags=["Users"])
+app.include_router(questions.router, tags=["Questions"])
 app.include_router(adaptive.router, tags=["Adaptive Logic"])
 app.include_router(assessment.router, tags=["Assessments"])
 app.include_router(payments.router, tags=["Payments"])
