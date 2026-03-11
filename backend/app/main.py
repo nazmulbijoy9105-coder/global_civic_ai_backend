@@ -65,15 +65,16 @@ def health_check():
         "environment": os.getenv("ENVIRONMENT", "production")
     }
 
-# --- ROUTER INCLUSIONS ---
-# Standardizing prefixes helps with API versioning and organization.
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(questions.router, prefix="/questions", tags=["Questions"])
-app.include_router(adaptive.router, prefix="/adaptive", tags=["Adaptive Logic"])
-app.include_router(assessment.router, prefix="/assessment", tags=["Assessments"])
-app.include_router(payments.router, prefix="/payments", tags=["Payments"])
-app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+# --- CORRECTED ROUTER INCLUSIONS ---
+# Remove the manual 'prefix' here if your router files already have them, 
+# OR keep these and remove them from the router files (auth.py, etc.)
+app.include_router(auth.router, tags=["Authentication"]) # Removed prefix="/auth"
+app.include_router(users.router, tags=["Users"]) # Removed prefix="/users"
+app.include_router(questions.router, tags=["Questions"]) # Removed prefix="/questions"
+app.include_router(adaptive.router, tags=["Adaptive Logic"])
+app.include_router(assessment.router, tags=["Assessments"])
+app.include_router(payments.router, tags=["Payments"])
+app.include_router(admin.router, tags=["Admin"])
 
 # --- STARTUP LOGGING ---
 @app.on_event("startup")
