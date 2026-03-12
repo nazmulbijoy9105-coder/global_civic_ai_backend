@@ -58,14 +58,10 @@ def root():
 
 @app.get("/health", tags=["System"])
 def health_check():
-    """Endpoint for Render health monitoring."""
-    return {
-        "status": "ok",
-        "service": "Global Civic AI Backend",
-        "environment": os.getenv("ENVIRONMENT", "production")
-    }
+    return {"status": "ok", "service": "Global Civic AI Backend"}
 
-# --- CORRECTED ROUTER INCLUSIONS (No Double Prefixes) ---
+# --- CORRECTED ROUTER INCLUSIONS ---
+# We remove the manual prefix="" because the routers already have them.
 app.include_router(auth.router, tags=["Authentication"])
 app.include_router(users.router, tags=["Users"])
 app.include_router(questions.router, tags=["Questions"])
