@@ -2,21 +2,29 @@ import os
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from backend.app.routers import auth, questions, users, assessment
 
-# Import database engine and routers
-# Note: Ensure your directory structure matches 'backend/app/...' 
-# or adjust these imports if you are running from within the app folder.
-from backend.app.database import engine
-from backend.app.routers import (
-    auth,
-    users,
-    questions,
-    adaptive,
-    assessment,
-    payments,
-    admin,
+app = FastAPI(title="Global Civic AI")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://global-civic-ai-frontend.onrender.com"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+# REGISTER ROUTERS WITHOUT EXTRA PREFIXES
+app.include_router(auth.router)
+app.include_router(questions.router)
+app.include_router(users.router)
+app.include_router(assessment.router)
 
 # Initialize environment variables
 load_dotenv()
@@ -56,9 +64,6 @@ def root():
         "status": "active"
     }
 
-@app.get("/health", tags=["System"])
-def health_check():
-    return {"status": "ok", "service": "Global Civic AI Backend"}
 
 # --- THE EXACT FIX: REMOVE DOUBLE PREFIXES ---
 app.include_router(auth.router, tags=["Authentication"])
