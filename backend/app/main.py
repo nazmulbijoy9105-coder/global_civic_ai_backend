@@ -60,8 +60,7 @@ def root():
 def health_check():
     return {"status": "ok", "service": "Global Civic AI Backend"}
 
-# --- CORRECTED ROUTER INCLUSIONS ---
-# We remove the manual prefix="" because the routers already have them.
+# --- THE EXACT FIX: REMOVE DOUBLE PREFIXES ---
 app.include_router(auth.router, tags=["Authentication"])
 app.include_router(users.router, tags=["Users"])
 app.include_router(questions.router, tags=["Questions"])
